@@ -142,7 +142,7 @@
     };
 
     const app=initializeApp(firebaseConfig),db=getFirestore(app),auth=getAuth(app),provider=new GoogleAuthProvider(),gamesRef=collection(db,"games");
-    const VERIFIED_EMAILS=["your-email@gmail.com"].map(email=>email.toLowerCase());
+    const VERIFIED_EMAILS=["prohexa65@gmail.com"].map(email=>email.toLowerCase());
     const LIKES_KEY="pixelArcadeLikedGames";
     let games=[],activeGame=null,unsubscribeComments=null,currentUser=null,selectedThumbnail="";
     const $=id=>document.getElementById(id);
