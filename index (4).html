@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0f172a">
+  <title>PixelArcade — Browser Game Lab</title>
+
+  <style>
+    :root{
+      --bg:#0f172a;--deep:#080d1d;--card:#1e293b;--text:#f8fafc;
+      --muted:#94a3b8;--border:rgba(148,163,184,.18);--cyan:#22d3ee;
+      --purple:#6366f1;--pink:#d946ef;--green:#34d399;--danger:#fb7185;
+      --shadow:0 20px 70px rgba(0,0,0,.4)
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;min-width:320px;color:var(--text);background:
+      radial-gradient(circle at 10% 0%,rgba(99,102,241,.18),transparent 32rem),
+      radial-gradient(circle at 90% 10%,rgba(34,211,238,.12),transparent 28rem),var(--bg);
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    body:before{content:"";position:fixed;inset:0;z-index:-1;opacity:.12;pointer-events:none;
+      background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);
+      background-size:44px 44px;mask-image:linear-gradient(to bottom,#000,transparent 85%)}
+    button,input,select,textarea{font:inherit}
+    button{cursor:pointer}
+    .navbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:22px;
+      min-height:74px;padding:14px 5vw;border-bottom:1px solid var(--border);
+      background:rgba(15,23,42,.78);backdrop-filter:blur(20px)}
+    .logo{display:flex;align-items:center;gap:10px;color:var(--text);font-size:1.35rem;
+      font-weight:900;letter-spacing:-.05em;text-decoration:none;white-space:nowrap}
+    .logo-mark{display:grid;width:35px;height:35px;place-items:center;border-radius:10px;color:#fff;
+      background:linear-gradient(135deg,var(--cyan),var(--purple),var(--pink));
+      box-shadow:0 0 25px rgba(99,102,241,.65);font-size:1.25rem}
+    .search-wrap{position:relative;flex:1;max-width:470px;margin-left:auto}
+    .search-wrap span{position:absolute;top:50%;left:15px;color:var(--muted);transform:translateY(-50%)}
+    .search-wrap input{width:100%;padding:12px 16px 12px 42px;border:1px solid var(--border);
+      border-radius:12px;outline:0;color:var(--text);background:rgba(30,41,59,.72)}
+    .search-wrap input:focus,input:focus,select:focus,textarea:focus{border-color:var(--cyan);
+      box-shadow:0 0 0 3px rgba(34,211,238,.12)}
+    .nav-actions,.hero-actions,.form-actions{display:flex;gap:10px}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 17px;
+      border:1px solid transparent;border-radius:11px;color:var(--text);font-weight:750;transition:.2s ease}
+    .btn:hover{transform:translateY(-2px)}
+    .btn:disabled{opacity:.65;cursor:not-allowed;transform:none}
+    .btn-primary{background:linear-gradient(135deg,var(--purple),var(--pink));
+      box-shadow:0 8px 25px rgba(99,102,241,.27)}
+    .btn-outline{border-color:var(--border);background:rgba(30,41,59,.6)}
+    .btn-danger{border-color:rgba(251,113,133,.35);background:rgba(251,113,133,.1);color:#fecdd3}
+    .btn-small{padding:8px 12px;font-size:.88rem}
+    .page{width:min(1200px,90%);margin:auto;padding:70px 0 90px;animation:pageIn .5s ease both}
+    .hidden{display:none!important}
+    @keyframes pageIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+    .hero{display:grid;grid-template-columns:1.25fr .75fr;align-items:center;gap:45px;margin-bottom:70px}
+    .eyebrow{display:inline-flex;align-items:center;gap:8px;padding:7px 11px;border:1px solid rgba(34,211,238,.25);
+      border-radius:999px;color:var(--cyan);background:rgba(34,211,238,.08);font-size:.8rem;
+      font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+    .eyebrow:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green);
+      box-shadow:0 0 12px var(--green)}
+    h1{max-width:700px;margin:20px 0;font-size:clamp(2.8rem,7vw,5.8rem);line-height:.95;letter-spacing:-.08em}
+    .gradient-text{color:transparent;background:linear-gradient(100deg,var(--cyan),#a78bfa 45%,var(--pink));
+      background-clip:text;-webkit-background-clip:text}
+    .hero p{max-width:580px;color:var(--muted);font-size:1.08rem;line-height:1.7}
+    .hero-actions{flex-wrap:wrap;margin-top:26px}
+    .credit-badge{display:flex;align-items:center;justify-content:center;min-height:290px;padding:30px;
+      border:1px solid rgba(34,211,238,.3);border-radius:24px;color:#e0f2fe;text-align:center;
+      background:linear-gradient(145deg,rgba(30,41,59,.92),rgba(15,23,42,.7));
+      box-shadow:var(--shadow);transform:rotate(2deg);font-size:1.25rem;font-weight:800;line-height:1.5}
+    .credit-badge strong{display:block;margin-top:8px;color:var(--cyan);font-size:1.05rem}
+    .section-heading{display:flex;align-items:end;justify-content:space-between;margin-bottom:22px}
+    .section-heading h2{margin:0;font-size:1.8rem}.section-heading p{margin:7px 0 0;color:var(--muted)}
+    .game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:20px}
+    .game-card{overflow:hidden;border:1px solid var(--border);border-radius:18px;background:rgba(30,41,59,.77);
+      box-shadow:0 10px 30px rgba(0,0,0,.15);transition:.25s ease}
+    .game-card:hover{border-color:rgba(34,211,238,.55);box-shadow:0 18px 45px rgba(0,0,0,.3);transform:translateY(-7px)}
+    .thumbnail{position:relative;display:grid;height:160px;place-items:center;overflow:hidden;
+      background:var(--thumb);font-size:4.6rem}
+    .thumbnail:before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,transparent 40%,rgba(255,255,255,.18))}
+    .thumbnail span{position:relative;filter:drop-shadow(0 7px 13px rgba(0,0,0,.4))}
+    .tag{position:absolute;top:13px;left:13px;padding:5px 9px;border:1px solid rgba(255,255,255,.2);
+      border-radius:6px;color:#fff;background:rgba(15,23,42,.72);font-size:.7rem;text-transform:uppercase}
+    .game-body{padding:17px}.game-body h3{margin:0 0 5px;font-size:1.12rem}
+    .author,.description,.game-meta{color:var(--muted);font-size:.84rem}
+    .description{min-height:38px;margin:12px 0;line-height:1.45}
+    .game-meta{display:flex;justify-content:space-between;margin-bottom:15px;font-size:.78rem}
+    .game-meta span:first-child{color:#c4b5fd}
+    .card-actions{display:flex;gap:9px}.play-btn{flex:1}.like-btn{white-space:nowrap}
+    .empty-state{padding:55px 20px;border:1px dashed var(--border);border-radius:18px;color:var(--muted);text-align:center}
+    .upload-layout{max-width:930px;margin:auto}.upload-header{margin-bottom:30px;text-align:center}
+    .upload-header h1{margin:15px auto 10px;font-size:clamp(2.3rem,5vw,4rem)}
+    .upload-header p{color:var(--muted)}
+    .editor-card{padding:clamp(20px,4vw,35px);border:1px solid var(--border);border-radius:22px;
+      background:rgba(30,41,59,.76);box-shadow:var(--shadow)}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    .field{display:flex;flex-direction:column;gap:8px}.field.full{grid-column:1/-1}
+    label{color:#dbeafe;font-size:.85rem;font-weight:750}
+    input,select,textarea{width:100%;border:1px solid var(--border);border-radius:10px;outline:0;color:var(--text);
+      background:rgba(15,23,42,.82);transition:.2s ease}
+    input,select{height:45px;padding:0 13px}textarea{min-height:100px;padding:13px;resize:vertical;line-height:1.5}
+    .code-editor{min-height:350px;color:#c4b5fd;background:#0a1020;font-family:monospace;tab-size:2}
+    .editor-toolbar{display:flex;justify-content:space-between;gap:15px;margin:28px 0 13px}
+    .editor-toolbar small{color:var(--muted)}.form-actions{justify-content:flex-end;margin-top:24px}
+    .modal{position:fixed;inset:0;z-index:100;display:grid;padding:18px;place-items:center;
+      background:rgba(2,6,23,.83);backdrop-filter:blur(12px)}
+    .player{display:flex;width:min(1150px,100%);height:min(850px,94vh);flex-direction:column;overflow:hidden;
+      border:1px solid rgba(99,102,241,.45);border-radius:18px;background:var(--deep);box-shadow:0 25px 100px #000}
+    .player-bar{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--border);background:rgba(30,41,59,.9)}
+    .player-title{flex:1;overflow:hidden;font-weight:800;text-overflow:ellipsis;white-space:nowrap}
+    .player-frame{flex:1;width:100%;min-height:0;border:0;background:#fff}
+    .social-panel{padding:16px;border-top:1px solid var(--border);background:rgba(15,23,42,.95)}
+    .social-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+    .comments-list{max-height:150px;overflow:auto;margin:12px 0}
+    .comment{padding:9px 0;border-bottom:1px solid var(--border);font-size:.87rem}
+    .comment strong{color:var(--cyan)}.comment small{display:block;margin-top:3px;color:var(--muted)}
+    .comment-form{display:grid;grid-template-columns:150px 1fr auto;gap:8px}
+    .comment-form input{height:40px}.comment-form button{padding:8px 13px}
+    .no-comments{color:var(--muted);font-size:.85rem}
+    .toast{position:fixed;right:22px;bottom:22px;z-index:200;max-width:360px;padding:14px 17px;
+      border:1px solid rgba(52,211,153,.4);border-radius:12px;color:#d1fae5;background:rgba(6,78,59,.95);
+      box-shadow:var(--shadow)}
+    footer{padding:22px 5vw;border-top:1px solid var(--border);color:var(--muted);text-align:center;font-size:.83rem}
+    .spinner{display:inline-block;width:15px;height:15px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @media(max-width:760px){
+      .navbar{flex-wrap:wrap;gap:12px;padding:12px 5%}.search-wrap{order:3;flex-basis:100%;max-width:none}
+      .nav-actions{margin-left:auto}.nav-actions .btn:first-child{display:none}.page{padding-top:45px}
+      .hero{grid-template-columns:1fr;gap:30px;margin-bottom:50px}.form-grid{grid-template-columns:1fr}
+      .field.full{grid-column:auto}.player{height:96vh}.player-bar{flex-wrap:wrap}
+      .player-title{flex-basis:100%;order:-1}.player-bar .btn{flex:1;padding:9px 6px;font-size:.77rem}
+      .comment-form{grid-template-columns:1fr}.comment-form button{width:100%}
+    }
+    @media(max-width:430px){
+      .logo{font-size:1.1rem}.nav-actions .btn{padding:9px 11px;font-size:.78rem}
+      .hero-actions,.form-actions{flex-direction:column}.hero-actions .btn,.form-actions .btn{width:100%}
+      .card-actions{flex-direction:column}
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar">
+    <a class="logo" href="#" id="logoLink"><span class="logo-mark">✦</span>PixelArcade</a>
+    <div class="search-wrap"><span>⌕</span><input id="searchInput" type="search" placeholder="Search games, genres, creators..."></div>
+    <div class="nav-actions">
+      <button class="btn btn-outline" id="browseBtn">Browse Games</button>
+      <button class="btn btn-primary" id="uploadBtn">＋ Upload Game</button>
+    </div>
+  </nav>
+
+  <main>
+    <section class="page" id="homeView">
+      <div class="hero">
+        <div>
+          <span class="eyebrow">The browser game lab</span>
+          <h1>Play it.<br><span class="gradient-text">Build it.</span><br>Share it.</h1>
+          <p>Discover experimental HTML games, test your own creations, and join a growing arcade built entirely in the browser.</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" id="heroBrowseBtn">Explore the arcade →</button>
+            <button class="btn btn-outline" id="heroUploadBtn">Create a game</button>
+          </div>
+        </div>
+        <div class="credit-badge">
+          <div>Made for curious minds<br>and creative coders
+            <strong>Created with ❤️ by ProHexa65 (Helal uddin)</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-heading">
+        <div><h2>Featured games</h2><p id="gameCount">Connecting to the arcade...</p></div>
+      </div>
+      <div class="game-grid" id="gameGrid"></div>
+    </section>
+
+    <section class="page hidden" id="uploadView">
+      <div class="upload-layout">
+        <div class="upload-header">
+          <span class="eyebrow">Creator studio</span>
+          <h1>Ship your <span class="gradient-text">next hit.</span></h1>
+          <p>Paste any self-contained HTML game and test it before publishing.</p>
+        </div>
+        <div class="editor-card">
+          <form id="gameForm">
+            <div class="form-grid">
+              <div class="field"><label for="gameTitle">Game title *</label><input id="gameTitle" required maxlength="50" placeholder="e.g. Neon Breaker"></div>
+              <div class="field"><label for="gameAuthor">Developer name *</label><input id="gameAuthor" required maxlength="35" placeholder="e.g. Pixel Wizard"></div>
+              <div class="field"><label for="gameCategory">Category *</label>
+                <select id="gameCategory" required><option>Arcade</option><option>Puzzle</option><option>Action</option><option>Retro</option></select>
+              </div>
+              <div class="field"><label for="gameEmoji">Thumbnail icon</label><input id="gameEmoji" maxlength="3" value="🎮"></div>
+              <div class="field full"><label for="gameDescription">Short description *</label>
+                <textarea id="gameDescription" required maxlength="140" placeholder="Tell players what makes your game fun..."></textarea>
+              </div>
+            </div>
+            <div class="editor-toolbar"><label for="gameCode">Game code *</label><small>HTML, CSS, and JavaScript in one file</small></div>
+            <textarea id="gameCode" class="code-editor" required spellcheck="false" placeholder="Paste full HTML/CSS/JS code here..."></textarea>
+            <div class="form-actions">
+              <button type="button" class="btn btn-outline" id="previewBtn">▶ Live Preview</button>
+              <button type="submit" class="btn btn-primary" id="publishBtn">Publish Game ✦</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal hidden" id="playerModal" role="dialog" aria-modal="true">
+    <div class="player">
+      <div class="player-bar">
+        <div class="player-title" id="playerTitle">Game</div>
+        <button class="btn btn-outline btn-small" id="restartBtn">↻ Restart</button>
+        <button class="btn btn-outline btn-small" id="fullscreenBtn">⛶ Full Screen</button>
+        <button class="btn btn-danger btn-small" id="closePlayerBtn">✕ Close</button>
+      </div>
+      <iframe id="gameFrame" class="player-frame" sandbox="allow-scripts allow-same-origin" title="Game player"></iframe>
+      <div class="social-panel">
+        <div class="social-top">
+          <strong>Join the conversation</strong>
+          <button class="btn btn-outline btn-small" id="modalLikeBtn">♡ Like <span id="modalLikeCount">0</span></button>
+        </div>
+        <div class="comments-list" id="commentsList"><div class="no-comments">Loading comments...</div></div>
+        <form class="comment-form" id="commentForm">
+          <input id="commentName" required maxlength="35" placeholder="Your name">
+          <input id="commentText" required maxlength="250" placeholder="Write a comment...">
+          <button class="btn btn-primary" type="submit">Comment</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast hidden" id="toast"></div>
+  <footer>PixelArcade © 2025 · Built for curious minds and creative coders</footer>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      onSnapshot,
+      query,
+      orderBy,
+      serverTimestamp,
+      doc,
+      updateDoc,
+      increment
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAykUTQ6pDDMdPPTnWruhlHpJr3MShzN1Q",
+      authDomain: "pixel-arcade-c4130.firebaseapp.com",
+      projectId: "pixel-arcade-c4130",
+      storageBucket: "pixel-arcade-c4130.firebasestorage.app",
+      messagingSenderId: "673589908971",
+      appId: "1:673589908971:web:3899e5c2d4f6e0837eb5ae",
+      measurementId: "G-3DVZ7KYGM3"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const gamesRef = collection(db, "games");
+
+    let games = [];
+    let activeGame = null;
+    let unsubscribeComments = null;
+
+    const $ = id => document.getElementById(id);
+
+    const gradients = {
+      Arcade: "linear-gradient(135deg,#be185d,#312e81)",
+      Puzzle: "linear-gradient(135deg,#4338ca,#0e7490)",
+      Action: "linear-gradient(135deg,#991b1b,#7e22ce)",
+      Retro: "linear-gradient(135deg,#065f46,#164e63)"
+    };
+
+    function escapeHtml(value = "") {
+      return String(value).replace(/[&<>"']/g, char => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[char]));
+    }
+
+    function showToast(message, error = false) {
+      const toast = $("toast");
+      toast.textContent = message;
+      toast.style.borderColor = error ? "rgba(251,113,133,.5)" : "rgba(52,211,153,.4)";
+      toast.style.background = error ? "rgba(127,29,29,.95)" : "rgba(6,78,59,.95)";
+      toast.classList.remove("hidden");
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => toast.classList.add("hidden"), 3500);
+    }
+
+    function renderGames() {
+      const searchText = $("searchInput").value.trim().toLowerCase();
+      const filtered = games.filter(game =>
+        [game.title, game.author, game.category, game.description]
+          .some(value => String(value || "").toLowerCase().includes(searchText))
+      );
+
+      $("gameCount").textContent =
+        `${filtered.length} game${filtered.length === 1 ? "" : "s"} ready to play`;
+
+      if (!filtered.length) {
+        $("gameGrid").innerHTML =
+          `<div class="empty-state">No games found. Try another search or publish your own creation.</div>`;
+        return;
+      }
+
+      $("gameGrid").innerHTML = filtered.map(game => `
+        <article class="game-card">
+          <div class="thumbnail" style="--thumb:${gradients[game.category] || gradients.Arcade}">
+            <span>${escapeHtml(game.emoji || "🎮")}</span>
+            <b class="tag">${escapeHtml(game.category || "Arcade")}</b>
+          </div>
+          <div class="game-body">
+            <h3>${escapeHtml(game.title)}</h3>
+            <div class="author">by ${escapeHtml(game.author)}</div>
+            <p class="description">${escapeHtml(game.description)}</p>
+            <div class="game-meta">
+              <span>● ${Number(game.plays || 0).toLocaleString()} plays</span>
+              <span>♥ ${Number(game.likes || 0).toLocaleString()} likes</span>
+            </div>
+            <div class="card-actions">
+              <button class="btn btn-primary play-btn" data-play="${escapeHtml(game.id)}">▶ Play Now</button>
+              <button class="btn btn-outline like-btn" data-like="${escapeHtml(game.id)}">♡ ${Number(game.likes || 0).toLocaleString()}</button>
+            </div>
+          </div>
+        </article>
+      `).join("");
+
+      document.querySelectorAll("[data-play]").forEach(button => {
+        button.addEventListener("click", () => openPlayer(button.dataset.play));
+      });
+
+      document.querySelectorAll("[data-like]").forEach(button => {
+        button.addEventListener("click", () => likeGame(button.dataset.like));
+      });
+    }
+
+    async function incrementGameField(id, field) {
+      const game = games.find(item => item.id === id);
+      if (!game) return;
+
+      const newValue = Number(game[field] || 0) + 1;
+      games = games.map(item => item.id === id ? {...item, [field]: newValue} : item);
+      renderGames();
+
+      try {
+        await updateDoc(doc(db, "games", id), {[field]: increment(1)});
+      } catch (error) {
+        games = games.map(item => item.id === id ? {...item, [field]: Math.max(0, newValue - 1)} : item);
+        renderGames();
+        showToast(`Could not update ${field}.`, true);
+        console.error(`Could not update ${field}:`, error);
+      }
+    }
+
+    function playGame(id) {
+      incrementGameField(id, "plays");
+    }
+
+    function likeGame(id) {
+      incrementGameField(id, "likes");
+      if (activeGame && activeGame.id === id) {
+        activeGame.likes = Number(activeGame.likes || 0) + 1;
+        $("modalLikeCount").textContent = activeGame.likes.toLocaleString();
+      }
+    }
+
+    function subscribeToGames() {
+      const gamesQuery = query(gamesRef, orderBy("createdAt", "desc"));
+
+      onSnapshot(gamesQuery, snapshot => {
+        games = snapshot.docs.map(documentSnapshot => ({
+          id: documentSnapshot.id,
+          ...documentSnapshot.data()
+        }));
+
+        if (activeGame && activeGame.id !== "preview") {
+          activeGame = games.find(game => game.id === activeGame.id) || activeGame;
+          $("modalLikeCount").textContent = Number(activeGame.likes || 0).toLocaleString();
+        }
+
+        renderGames();
+      }, error => {
+        console.error("Firestore listener error:", error);
+        $("gameCount").textContent = "Unable to load games";
+        $("gameGrid").innerHTML =
+          `<div class="empty-state">Could not connect to Firestore. Check your database rules and network connection.</div>`;
+        showToast("Could not connect to the game arcade.", true);
+      });
+    }
+
+    function subscribeToComments(gameId) {
+      if (unsubscribeComments) unsubscribeComments();
+
+      $("commentsList").innerHTML = `<div class="no-comments">Loading comments...</div>`;
+
+      const commentsRef = collection(db, "games", gameId, "comments");
+      const commentsQuery = query(commentsRef, orderBy("createdAt", "desc"));
+
+      unsubscribeComments = onSnapshot(commentsQuery, snapshot => {
+        if (snapshot.empty) {
+          $("commentsList").innerHTML = `<div class="no-comments">No comments yet. Be the first to comment!</div>`;
+          return;
+        }
+
+        $("commentsList").innerHTML = snapshot.docs.map(commentSnapshot => {
+          const comment = commentSnapshot.data();
+          return `
+            <div class="comment">
+              <strong>${escapeHtml(comment.name || "Anonymous")}</strong>
+              <div>${escapeHtml(comment.text || "")}</div>
+              <small>${comment.createdAt?.toDate ? comment.createdAt.toDate().toLocaleString() : "Just now"}</small>
+            </div>
+          `;
+        }).join("");
+      }, error => {
+        console.error("Comments listener error:", error);
+        $("commentsList").innerHTML = `<div class="no-comments">Comments could not be loaded.</div>`;
+      });
+    }
+
+    function showView(view) {
+      $("homeView").classList.toggle("hidden", view !== "home");
+      $("uploadView").classList.toggle("hidden", view !== "upload");
+      window.scrollTo({top: 0, behavior: "smooth"});
+    }
+
+    function openPlayer(id, previewCode = null, previewTitle = "Live Preview") {
+      activeGame = games.find(game => game.id === id) || {
+        id: "preview",
+        title: previewTitle,
+        code: previewCode,
+        likes: 0
+      };
+
+      if (id !== "preview") playGame(id);
+
+      $("playerTitle").textContent = activeGame.title;
+      $("gameFrame").srcdoc = previewCode || activeGame.code;
+      $("modalLikeBtn").classList.toggle("hidden", id === "preview");
+      $("modalLikeCount").textContent = Number(activeGame.likes || 0).toLocaleString();
+      $("playerModal").classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+
+      if (id !== "preview") subscribeToComments(id);
+    }
+
+    function closePlayer() {
+      $("playerModal").classList.add("hidden");
+      $("gameFrame").srcdoc = "";
+      $("commentsList").innerHTML = "";
+      document.body.style.overflow = "";
+      activeGame = null;
+      if (unsubscribeComments) {
+        unsubscribeComments();
+        unsubscribeComments = null;
+      }
+    }
+
+    $("browseBtn").addEventListener("click", () => {
+      showView("home");
+      $("gameGrid").scrollIntoView({behavior: "smooth"});
+    });
+
+    $("heroBrowseBtn").addEventListener("click", () => {
+      $("gameGrid").scrollIntoView({behavior: "smooth"});
+    });
+
+    $("uploadBtn").addEventListener("click", () => showView("upload"));
+    $("heroUploadBtn").addEventListener("click", () => showView("upload"));
+
+    $("logoLink").addEventListener("click", event => {
+      event.preventDefault();
+      showView("home");
+    });
+
+    $("searchInput").addEventListener("input", renderGames);
+    $("closePlayerBtn").addEventListener("click", closePlayer);
+
+    $("playerModal").addEventListener("click", event => {
+      if (event.target === $("playerModal")) closePlayer();
+    });
+
+    $("restartBtn").addEventListener("click", () => {
+      if (activeGame) $("gameFrame").srcdoc = activeGame.code;
+    });
+
+    $("fullscreenBtn").addEventListener("click", () => {
+      if ($("gameFrame").requestFullscreen) $("gameFrame").requestFullscreen();
+    });
+
+    $("modalLikeBtn").addEventListener("click", () => {
+      if (activeGame && activeGame.id !== "preview") likeGame(activeGame.id);
+    });
+
+    $("commentForm").addEventListener("submit", async event => {
+      event.preventDefault();
+
+      if (!activeGame || activeGame.id === "preview") return;
+
+      const name = $("commentName").value.trim();
+      const text = $("commentText").value.trim();
+
+      if (!name || !text) return;
+
+      try {
+        await addDoc(collection(db, "games", activeGame.id, "comments"), {
+          name,
+          text,
+          createdAt: serverTimestamp()
+        });
+
+        $("commentText").value = "";
+        showToast("Comment posted!");
+      } catch (error) {
+        console.error("Comment upload failed:", error);
+        showToast("Your comment could not be posted.", true);
+      }
+    });
+
+    $("previewBtn").addEventListener("click", () => {
+      const code = $("gameCode").value.trim();
+
+      if (!code) {
+        showToast("Paste some game code before previewing.", true);
+        return;
+      }
+
+      openPlayer("preview", code, "Live Preview");
+    });
+
+    $("gameForm").addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const publishButton = $("publishBtn");
+      const originalText = publishButton.innerHTML;
+      const code = $("gameCode").value.trim();
+
+      if (!code) {
+        showToast("Your game needs HTML code before it can be published.", true);
+        return;
+      }
+
+      publishButton.disabled = true;
+      publishButton.innerHTML = `<span class="spinner"></span> Publishing...`;
+
+      const game = {
+        title: $("gameTitle").value.trim(),
+        author: $("gameAuthor").value.trim(),
+        category: $("gameCategory").value,
+        description: $("gameDescription").value.trim(),
+        code,
+        emoji: $("gameEmoji").value.trim() || "🎮",
+        plays: 0,
+        likes: 0,
+        createdAt: serverTimestamp()
+      };
+
+      try {
+        await addDoc(gamesRef, game);
+        event.target.reset();
+        $("gameEmoji").value = "🎮";
+        showView("home");
+        showToast(`${game.title} was published to the arcade!`);
+      } catch (error) {
+        console.error("Game upload failed:", error);
+        showToast("The game could not be published. Check Firestore permissions.", true);
+      } finally {
+        publishButton.disabled = false;
+        publishButton.innerHTML = originalText;
+      }
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && !$("playerModal").classList.contains("hidden")) {
+        closePlayer();
+      }
+    });
+
+    subscribeToGames();
+  </script>
+</body>
+</html>
